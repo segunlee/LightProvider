@@ -1,0 +1,7 @@
+{
+  "ROOT": "./",
+  "CONTENTS": "files",
+  "PORT": 31258,
+  "HOST": "0.0.0.0",
+  "PASSWORD": ""
+}
