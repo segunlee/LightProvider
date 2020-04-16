@@ -5,6 +5,7 @@ This application can substitue the AricComix Server which supports Windows and O
 ## Requirements
 ```
 Flask
+Pillow
 ```
 
 ## Limitation

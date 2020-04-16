@@ -6,21 +6,20 @@ import sys
 import json
 import logging
 import zipfile
+import argparse
+import flask
 from PIL import Image
 from collections import namedtuple
 from io import BytesIO
+from werkzeug.routing import BaseConverter
 from functools import wraps
-#from flask import request
+
 if sys.version_info.major == 3:
     from urllib.parse import *
     from io import StringIO
 else:
     from urllib import *
     import StringIO
-import argparse
-
-import flask
-from werkzeug.routing import BaseConverter
 
 __version__ = (0, 2, 1)
 
