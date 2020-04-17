@@ -91,14 +91,17 @@ class BaseListingModel(JsonSerializable):
 
 def get_image_size_from_bytes(head):
 	""" 이미지 사이즈를 반환한다 """
-	im = Image.open(head)
-	return im.size
+	try:
+		im = Image.open(head)
+		return im.size
+	except:
+		return 0,0
 
 def is_hidden_or_trash(full_path):
 	""" 숨김 파일 또는 __MACOSX 디렉토리인지 확인한다. """
 	if full_path.startswith('DS_STORE'):
 		return True
-	if full_path.startswith('__MACOSX'):	
+	if '__MACOSX' in full_path:	
 		return True
 	return False
 
