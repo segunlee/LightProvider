@@ -283,9 +283,11 @@ def load_image_model(req_path, archive, archive_ext):
 	app.logger.info(archive_path)
 
 	if archive_ext == 'zip':
-		model = get_imagemodel_in_zip(archive_path)
-		data = json.dumps(model.toJson(), ensure_ascii=False)
-	
+		models = get_imagemodel_in_zip(archive_path)
+                
+		json_response = {"response":[obj.__dict__ for obj in models]}
+		data = json.dumps(json_response, ensure_ascii=False)
+
 		response = flask.Response(data, headers=None)
 		return response
 	
