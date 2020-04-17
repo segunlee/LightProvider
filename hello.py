@@ -184,17 +184,16 @@ def get_image_data_in_zip(zip_path, file_path):
 	""" 압축 파일(zip_path)에서 이미지 파일(file_path)의 데이터를 반환한다. """
 	with zipfile.ZipFile(zip_path) as zf:
 		for name in zf.namelist():
-		
-			if is_allow_extensions_image(name):
-				model = BaseImageModel()
-				model._name = name
+			if name == file_path:
+				if is_allow_extensions_image(name):
+					model = BaseImageModel()
+					model._name = name
 
-				with zf.open(model._name) as f:
-					bytesIO = BytesIO()
-					bytesIO.write(f.read())
-					bytesIO.seek(0)
-					return bytesIO
-
+					with zf.open(model._name) as f:
+						bytesIO = BytesIO()
+						bytesIO.write(f.read())
+						bytesIO.seek(0)
+						return bytesIO
 
 def get_listing_model(path):
 	""" 리스팅 """
