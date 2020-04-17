@@ -292,8 +292,22 @@ def load_image_model(req_path, archive, archive_ext):
 		return response
 	
 
-	
+@app.route('/<path:req_path>/<string:archive>.<string:archive_ext>/<string:img_path>')
+@requires_auth
+def load_image_data(req_path, archive, archive_ext, img_path):
+    app.logger.info(img_path)
+    app.logger.info("내부경로 미존재")
+    return ('', 200)
 
+
+
+@app.route('/<path:req_path>/<string:archive>.<string:archive_ext>/<path:inner_path>/<string:img_path>')
+@requires_auth
+def load_image_data2(req_path, archive, archive_ext, inner_path, img_path):
+    app.logger.info("내부경로 존재시")
+    app.logger.info(inner_path)
+    app.logger.info(img_path)
+    return ('', 200)
 
 
 # 앱 시작
