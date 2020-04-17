@@ -1,3 +1,11 @@
+pyinstaller
+py2app
+otkinter
+global prefix
+
+
+
+
 # PyComix - Python-based AirComix Server
 
 This application can substitue the AricComix Server which supports Windows and OS X.
