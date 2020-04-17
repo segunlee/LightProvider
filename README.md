@@ -1,5 +1,4 @@
 # LightProvider - Python-based LightComics Server
-
 파이선3 베이스로 작성된 LightComics 압축파일 스트리밍 서버입니다.
 
 ## 필요 패키지
