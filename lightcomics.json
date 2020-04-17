@@ -1,6 +1,5 @@
 {
   "ROOT": "/home/ec2-user/lightprovider/files",
-  "CONTENTS": "",
   "PORT": 8909,
   "HOST": "0.0.0.0",
   "PASSWORD": ""

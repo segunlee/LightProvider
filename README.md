@@ -16,7 +16,6 @@ Configuration file
 ```
 {
   "ROOT": "z:/",
-  "CONTENTS": "comics",
   "PORT": 31258,
   "HOST": "0.0.0.0",
   "PASSWORD": "TEST"
