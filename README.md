@@ -1,27 +1,27 @@
-# PyComix - Python-based AirComix Server
+# LightProvider - Python-based LightComics Server
 
-This application can substitue the AricComix Server which supports Windows and OS X.
+파이선3 베이스로 작성된 LightComics 압축파일 스트리밍 서버입니다.
 
-## Requirements
+## 필요 패키지
 ```
 Flask
 Pillow
 ```
 
-## Limitation
-Only supports folder and zip file.
+## 지원
+현재 zip 파일만 지원합니다.
 
 ## run
-Configuration file
+설정파일
 ```
 {
   "ROOT": "z:/",
-  "PORT": 31258,
+  "PORT": 8909,
   "HOST": "0.0.0.0",
   "PASSWORD": "TEST"
 }
 ```
 
 ```
-python comix.py
+python lightcomics.py
 ```
