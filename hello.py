@@ -297,7 +297,25 @@ def load_image_model(req_path, archive, archive_ext):
 def load_image_data(req_path, archive, archive_ext, img_path):
     app.logger.info(img_path)
     app.logger.info("내부경로 미존재")
-    return ('', 200)
+
+    basePath = get_real_path(ROOT, CONTENTS)
+    full_path = "%s" % unquote(req_path)
+    full_real_path = get_real_path(basePath, full_path)
+    full_real_path = os.path.join(full_real_path, "")
+    
+    app.logger.info(full_real_path)
+
+    archive_name = archive + "." + archive_ext
+    archive_path = os.path.join(full_real_path, archive_name)
+    
+    app.logger.info(archive_path)
+
+    if archive_ext == 'zip':
+        
+        img = get_image_data_in_zip(archive_path, img_path)
+        return flask.send_file(img, attachment_filename=os.path.basename(img_path), as_attachment=True)
+
+    return ('', 204)
 
 
 
