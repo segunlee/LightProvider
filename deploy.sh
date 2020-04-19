@@ -1,0 +1,1 @@
+nohup python ./lightcomics.py &
