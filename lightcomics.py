@@ -3,10 +3,13 @@
 
 import os
 import sys
+import time
+import datetime
 import json
 import zipfile
 import struct
 import imghdr
+import platform
 import flask
 import logging
 from PIL import Image
@@ -61,6 +64,17 @@ def requires_auth(f):
 class LightEncoder(json.JSONEncoder):
 	def default(self, o):
 		return o.__dict__
+
+
+# Identifier 모델
+class BaseIdentifierModel(LightEncoder):
+	def __init__(self):
+		self._path = ""
+		self._identifier = ""
+
+	def __str__(self):
+		return "BaseIdentifierModel (%s, %s)" % (self._path, self._identifier)
+
 
 # 이미지 모델
 class BaseImageModel(LightEncoder):
@@ -212,13 +226,16 @@ def get_listing_model(path):
 			app.logger.info(name + " ignore")
 			
 	return listing_model
-	
-	
+
 def get_unique_identifier(path):
 	""" path에 해당하는 고유값을 생성하여 반환한다 """
-	createdate = int(os.path.getctime(path))
-	filesize = int(os.path.getsize(path))
+	path = remove_trail_slash(path)
+	createdate = int(os.stat(path).st_ctime)
+	filesize = int(getSizeOf(path))
+	app.logger.info("createdate: " + str(createdate))
+	app.logger.info("filesize: " + str(filesize))
 	uniqueue_identifier = str(createdate + filesize)
+	app.logger.info(uniqueue_identifier)
 	return uniqueue_identifier
 
 def get_real_path(base, abs_path):
@@ -227,9 +244,30 @@ def get_real_path(base, abs_path):
 	real_path = os.path.join(base, abs_path)
 	return real_path
 
+def remove_trail_slash(s):
+	""" 마지막 slash를 제거한다 """
+	if s.endswith('/'):
+		s = s[:-1]
+	return s
+
+def getSizeOf(path):
+	""" 해당 경로 파일 또는 디렉토리의 사이즈를 구하여 반환한다 """
+	total_size = os.path.getsize(path)
+
+	if os.path.isdir(path) == False:
+		return total_size
+
+	for item in os.listdir(path):
+		itempath = os.path.join(folder, item)
+		if os.path.isfile(itempath):
+			total_size += os.path.getsize(itempath)
+		elif os.path.isdir(itempath):
+			total_size += getFolderSize(itempath)
+	return total_size
+
+
 
 # Flask 네트워크 맵핑 시작
-
 @app.route('/')
 @requires_auth
 def root():
@@ -346,6 +384,31 @@ def load_image_data2(req_path, archive, archive_ext, img_path):
 		return flask.send_file(img, attachment_filename=os.path.basename(img_path), as_attachment=True)
 
 	return ('', 204)
+
+
+@app.route('/id/<path:req_path>')
+@requires_auth
+def get_identifier(req_path):
+	"""
+	해당하는 경로의 파일 identifier를 반환한다.
+	localhost:8909/dir/hello.zip
+	"""
+	app.logger.info("@app.route('/id/<path:req_path>')")
+
+	basePath = get_real_path(ROOT, "")	
+	full_path = "%s" % unquote(req_path)
+	full_real_path = get_real_path(basePath, full_path)
+	full_real_path = os.path.join(full_real_path, "")
+	app.logger.info(full_real_path)
+
+	model = BaseIdentifierModel()
+	model._path = full_real_path
+	model._identifier = get_unique_identifier(full_real_path)
+
+	data = json.dumps(model, indent=4, cls=LightEncoder)
+	response = flask.Response(data, headers=None, mimetype='application/json')
+	return response
+
 
 
 
