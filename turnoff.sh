@@ -1,4 +1,4 @@
-echo "> 현재 구동중인 애플리케이션 pid 확인"
+echo "> Is Running?"
 
 CURRENT_PID=$(pgrep -f lightcomics)
 
@@ -14,7 +14,7 @@ else
 fi
 
 
-echo "> 현재 구동중인 애플리케이션 pid 확인"
+echo "> Is Running?"
 
 CURRENT_PID=$(pgrep -f lightcomics)
 
