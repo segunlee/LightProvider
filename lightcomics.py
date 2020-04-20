@@ -52,7 +52,6 @@ def requires_auth(f):
 	def decorated(*args, **kwargs):
 		auth = flask.request.authorization
 		if not auth or not check_auth(auth.username, auth.password):
-			logger.error("로그인에 실패하였습니다.")
 			return authenticate()
 		return f(*args, **kwargs)
 	return decorated
