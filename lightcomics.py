@@ -402,7 +402,7 @@ def get_identifier(req_path):
 	app.logger.info(full_real_path)
 
 	model = BaseIdentifierModel()
-	model._path = full_real_path
+	model._path = remove_trail_slash(full_real_path)
 	model._identifier = get_unique_identifier(full_real_path)
 
 	data = json.dumps(model, indent=4, cls=LightEncoder)
