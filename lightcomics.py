@@ -102,6 +102,9 @@ class BaseListingModel(LightEncoder):
 
 def fix_str(str):
 	name = str
+	
+	return name
+	
 	try:
 		name = name.encode('cp437').decode('cp949')
 	except UnicodeEncodeError:
