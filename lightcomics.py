@@ -7,13 +7,14 @@ import time
 import datetime
 import json
 import zipfile
-import rarfile
+# import rarfile
 import struct
 import imghdr
 import platform
-import flask
 import logging
 import chardet
+import flask
+from flask import request
 from PIL import Image
 from io import BytesIO
 from werkzeug.routing import BaseConverter
@@ -24,7 +25,7 @@ from urllib.parse import *
 __version__ = (1, 0, 0)
 
 allow_extensions_image = ['jpg', 'gif', 'png', 'tif', 'bmp', 'jpeg', 'tiff']
-allow_extensions_archive = ['zip', 'cbz', 'rar']
+allow_extensions_archive = ['zip', 'cbz']
 allow_extensions = allow_extensions_image + allow_extensions_archive
 
 ZIP_FILENAME_UTF8_FLAG = 0x800
@@ -84,6 +85,7 @@ class BaseIdentifierModel(LightEncoder):
 class BaseImageModel(LightEncoder):
 	def __init__(self):
 		self._name = ""
+		self._decode_name = ""
 		self._width = -1
 		self._height = -1
 
@@ -110,8 +112,6 @@ def fix_str(str):
 		name = name.encode('utf8')
 		encoding = chardet.detect(name)['encoding']
 		name = name.decode(encoding)
-
-	app.logger.error(name)
 
 	return name
 
@@ -158,7 +158,7 @@ def is_allow_extensions_archive(file_name):
 	else:
 		return True
 
-def get_imagemodel_in_dir(dir_path):
+def get_imagemodel_in_dir(dir_path, mode):
 	""" 디렉토리의(dir_path)의 이미지파일의 name, width, height를 모아서 반환한다."""
 	image_models = []
 
@@ -167,19 +167,20 @@ def get_imagemodel_in_dir(dir_path):
 		if is_allow_extensions_image(name):
 			model = BaseImageModel()
 			model._name = dir_path + name
+			if mode == "1":
+				with open(model._name, mode='rb') as f:
+					bytesIO = BytesIO()
+					bytesIO.write(f.read())
+					bytesIO.seek(0)
+					size = get_image_size_from_bytes(bytesIO)
+					model._width = size[0]
+					model._height = size[1]
 
-			with open(model._name, mode='rb') as f:
-				bytesIO = BytesIO()
-				bytesIO.write(f.read())
-				bytesIO.seek(0)
-				size = get_image_size_from_bytes(bytesIO)
-				model._width = size[0]
-				model._height = size[1]	
 			image_models.append(model)
 				
 	return image_models
 
-def get_imagemodel_in_zip(zip_path):
+def get_imagemodel_in_zip(zip_path, mode):
 	""" 압축파일(zip_path)의 이미지파일의 name, width, height를 모아서 반환한다."""
 	image_models = []
 	
@@ -189,39 +190,41 @@ def get_imagemodel_in_zip(zip_path):
 			if is_allow_extensions_image(name):
 				model = BaseImageModel()
 				model._name = name
-								
-				with zf.open(name) as f:
-					bytesIO = BytesIO()
-					bytesIO.write(f.read())
-					bytesIO.seek(0)
-					size = get_image_size_from_bytes(bytesIO)
-					model._width = size[0]
-					model._height = size[1]
-					image_models.append(model)
+				model._decode_name = fix_str(name)
+				if mode == "1":
+					with zf.open(name) as f:
+						bytesIO = BytesIO()
+						bytesIO.write(f.read())
+						bytesIO.seek(0)
+						size = get_image_size_from_bytes(bytesIO)
+						model._width = size[0]
+						model._height = size[1]
+
+				image_models.append(model)
 				
 	return image_models
 
-def get_imagemodel_in_rar(rar_path):
-	""" 압축파일(rar_path)의 이미지파일의 name, width, height를 모아서 반환한다."""
-	image_models = []
+# def get_imagemodel_in_rar(rar_path):
+# 	""" 압축파일(rar_path)의 이미지파일의 name, width, height를 모아서 반환한다."""
+# 	image_models = []
 	
-	with rarfile.RarFile(zip_path) as rf:
-		for name in rf.namelist():
+# 	with rarfile.RarFile(rar_path) as rf:
+# 		for name in rf.namelist():
 		
-			if is_allow_extensions_image(name):
-				model = BaseImageModel()
-				model._name = name
+# 			if is_allow_extensions_image(name):
+# 				model = BaseImageModel()
+# 				model._name = name
 								
-				with rf.open(name) as f:
-					bytesIO = BytesIO()
-					bytesIO.write(f.read())
-					bytesIO.seek(0)
-					size = get_image_size_from_bytes(bytesIO)
-					model._width = size[0]
-					model._height = size[1]
-					image_models.append(model)
+# 				with rf.open(name) as f:
+# 					bytesIO = BytesIO()
+# 					bytesIO.write(f.read())
+# 					bytesIO.seek(0)
+# 					size = get_image_size_from_bytes(bytesIO)
+# 					model._width = size[0]
+# 					model._height = size[1]
+# 					image_models.append(model)
 				
-	return image_models
+# 	return image_models
 
 def get_image_data_in_dir(file_path):
 	""" 이미지 파일(file_path)의 데이터를 반환한다. """
@@ -373,22 +376,24 @@ def load_image_model2(req_path, archive, archive_ext):
 
 	app.logger.info(archive_path)
 
+	mode = request.args.get('mode', "0")
+	app.logger.info("mode: " + mode)
+
 	if archive_ext == 'zip':
-		models = get_imagemodel_in_zip(archive_path)
+		models = get_imagemodel_in_zip(archive_path, mode)
 		data = json.dumps(models, indent=4, cls=LightEncoder)
 		response = flask.Response(data, headers=None, mimetype='application/json')
 		return response
 	
-	elif archive_ext == 'rar':
-		models = get_imagemodel_in_rar(archive_path)
-		data = json.dumps(models, indent=4, cls=LightEncoder)
-		response = flask.Response(data, headers=None, mimetype='application/json')
-		return response
-
+	# elif archive_ext == 'rar':
+	# 	models = get_imagemodel_in_rar(archive_path)
+	# 	data = json.dumps(models, indent=4, cls=LightEncoder)
+	# 	response = flask.Response(data, headers=None, mimetype='application/json')
+	# 	return response
+	return ('', 204)
 
 
 @app.route('/<string:archive>.<string:archive_ext>/<path:img_path>')
-@requires_auth
 def load_image_data(archive, archive_ext, img_path):
 	"""
 	압축파일 내부 이미지 데이터 반환
@@ -401,7 +406,6 @@ def load_image_data(archive, archive_ext, img_path):
 
 
 @app.route('/<path:req_path>/<string:archive>.<string:archive_ext>/<path:img_path>')
-@requires_auth
 def load_image_data2(req_path, archive, archive_ext, img_path):
 	"""
 	압축파일 내부 이미지 데이터 반환
