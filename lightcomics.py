@@ -108,6 +108,8 @@ def fix_str(str):
 		encoding = chardet.detect(name)['encoding']
 		name = name.decode(encoding)
 
+	app.logger.error(name)
+
 	return name
 
 def get_image_size_from_bytes(head):
