@@ -170,9 +170,9 @@ def get_imagemodel_in_zip(zip_path):
 		
 			if is_allow_extensions_image(name):
 				model = BaseImageModel()
-				model._name = name
+				model._name = name.encode('cp437').decode('cp932')
 								
-				with zf.open(model._name) as f:
+				with zf.open(name) as f:
 					bytesIO = BytesIO()
 					bytesIO.write(f.read())
 					bytesIO.seek(0)
