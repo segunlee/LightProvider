@@ -103,8 +103,6 @@ class BaseListingModel(LightEncoder):
 def fix_str(str):
 	name = str
 	
-	return name
-	
 	try:
 		name = name.encode('cp437').decode('cp949')
 	except UnicodeEncodeError:
@@ -189,7 +187,7 @@ def get_imagemodel_in_zip(zip_path):
 		
 			if is_allow_extensions_image(name):
 				model = BaseImageModel()
-				model._name = fix_str(name)
+				model._name = name
 								
 				with zf.open(name) as f:
 					bytesIO = BytesIO()
