@@ -26,6 +26,8 @@ allow_extensions_image = ['jpg', 'gif', 'png', 'tif', 'bmp', 'jpeg', 'tiff']
 allow_extensions_archive = ['zip', 'cbz']
 allow_extensions = allow_extensions_image + allow_extensions_archive
 
+ZIP_FILENAME_UTF8_FLAG = 0x800
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -100,9 +102,8 @@ class BaseListingModel(LightEncoder):
 
 def fix_str(str):
 	name = str
-	
 	try:
-		name = name.encode('cp437')
+		name = name.encode('cp437').decode('cp949')
 	except UnicodeEncodeError:
 		name = name.encode('utf8')
 		encoding = chardet.detect(name)['encoding']
