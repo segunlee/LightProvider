@@ -12,6 +12,7 @@ import imghdr
 import platform
 import flask
 import logging
+import chardet
 from PIL import Image
 from io import BytesIO
 from werkzeug.routing import BaseConverter
@@ -97,6 +98,18 @@ class BaseListingModel(LightEncoder):
 	def __str__(self):
 		return "BaseListingModel %s | %s | %s)" % (self._directories, self._archives, self._images)
 
+def fix_str(str):
+	name = str
+	
+	try:
+		name = name.encode('cp437')
+	except UnicodeEncodeError:
+		name = name.encode('utf8')
+		encoding = chardet.detect(name)['encoding']
+		name = name.decode(encoding)
+
+	return name
+
 def get_image_size_from_bytes(head):
 	""" 이미지 사이즈를 반환한다 """
 	try:
@@ -170,7 +183,7 @@ def get_imagemodel_in_zip(zip_path):
 		
 			if is_allow_extensions_image(name):
 				model = BaseImageModel()
-				model._name = name.encode('cp437').decode('euc-kr', 'ignore')
+				model._name = fix_str(name)
 								
 				with zf.open(name) as f:
 					bytesIO = BytesIO()
