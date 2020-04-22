@@ -7,6 +7,7 @@ import time
 import datetime
 import json
 import zipfile
+import rarfile
 import struct
 import imghdr
 import platform
@@ -23,7 +24,7 @@ from urllib.parse import *
 __version__ = (1, 0, 0)
 
 allow_extensions_image = ['jpg', 'gif', 'png', 'tif', 'bmp', 'jpeg', 'tiff']
-allow_extensions_archive = ['zip', 'cbz']
+allow_extensions_archive = ['zip', 'cbz', 'rar']
 allow_extensions = allow_extensions_image + allow_extensions_archive
 
 ZIP_FILENAME_UTF8_FLAG = 0x800
