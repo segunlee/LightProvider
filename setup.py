@@ -5,7 +5,7 @@ from cx_Freeze import setup, Executable
 
 include_files = [ 'lightcomics.json']
 
-include = [ 'jinja2', 'jinja2.ext', '', '']
+include = [ 'jinja2', 'jinja2.ext', 'Pillow']
 
 buildOptions = dict(packages = [], excludes = [], include_files=include_files, includes=include)
 
