@@ -2,3 +2,4 @@
 *.out
 files/*
 __pycache__
+build
