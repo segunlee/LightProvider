@@ -205,27 +205,27 @@ def get_imagemodel_in_zip(zip_path, mode):
 	return image_models
 
 def get_imagemodel_in_rar(rar_path, mode):
- 	""" 압축파일(rar_path)의 이미지파일의 name, width, height를 모아서 반환한다."""
- 	image_models = []
+	""" 압축파일(rar_path)의 이미지파일의 name, width, height를 모아서 반환한다."""
+	image_models = []
 	
- 	with rarfile.RarFile(rar_path) as rf:
- 		for name in rf.namelist():
+	with rarfile.RarFile(rar_path) as rf:
+		for name in rf.namelist():
 		
- 			if is_allow_extensions_image(name):
- 				model = BaseImageModel()
- 				model._name = name
+			if is_allow_extensions_image(name):
+				model = BaseImageModel()
+				model._name = name
 				if mode == "1":
- 					with rf.open(name) as f:
- 						bytesIO = BytesIO()
- 						bytesIO.write(f.read())
- 						bytesIO.seek(0)
- 						size = get_image_size_from_bytes(bytesIO)
- 						model._width = size[0]
- 						model._height = size[1]
- 						
- 				image_models.append(model)
+					with rf.open(name) as f:
+						bytesIO = BytesIO()
+						bytesIO.write(f.read())
+						bytesIO.seek(0)
+						size = get_image_size_from_bytes(bytesIO)
+						model._width = size[0]
+						model._height = size[1]
 				
- 	return image_models
+				image_models.append(model)
+
+return image_models
 
 def get_image_data_in_dir(file_path):
 	""" 이미지 파일(file_path)의 데이터를 반환한다. """
