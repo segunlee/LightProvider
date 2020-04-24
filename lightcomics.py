@@ -7,7 +7,7 @@ import time
 import datetime
 import json
 import zipfile
-# import rarfile
+import rarfile
 import struct
 import imghdr
 import platform
@@ -25,7 +25,7 @@ from urllib.parse import *
 __version__ = (1, 0, 0)
 
 allow_extensions_image = ['jpg', 'gif', 'png', 'tif', 'bmp', 'jpeg', 'tiff']
-allow_extensions_archive = ['zip', 'cbz']
+allow_extensions_archive = ['zip', 'cbz', 'rar']
 allow_extensions = allow_extensions_image + allow_extensions_archive
 
 ZIP_FILENAME_UTF8_FLAG = 0x800
@@ -39,7 +39,7 @@ ROOT = CONF['ROOT']
 
 # 경로 체크
 if not os.path.exists(ROOT):
-	raise Exception("No Folder")
+	raise Exception("No Root Directory!!!!")
 
 # 앱 선언
 app = flask.Flask(__name__)
@@ -54,7 +54,7 @@ def authenticate():
 		'You have to login with proper credentials', 401,
 		{'WWW-Authenticate': 'Basic realm="Login Required"'})
 
-# 권한 요구
+        # 권한 요구
 def requires_auth(f):
 	@wraps(f)
 	def decorated(*args, **kwargs):
@@ -204,27 +204,28 @@ def get_imagemodel_in_zip(zip_path, mode):
 				
 	return image_models
 
-# def get_imagemodel_in_rar(rar_path):
-# 	""" 압축파일(rar_path)의 이미지파일의 name, width, height를 모아서 반환한다."""
-# 	image_models = []
+ def get_imagemodel_in_rar(rar_path, mode):
+ 	""" 압축파일(rar_path)의 이미지파일의 name, width, height를 모아서 반환한다."""
+ 	image_models = []
 	
-# 	with rarfile.RarFile(rar_path) as rf:
-# 		for name in rf.namelist():
+ 	with rarfile.RarFile(rar_path) as rf:
+ 		for name in rf.namelist():
 		
-# 			if is_allow_extensions_image(name):
-# 				model = BaseImageModel()
-# 				model._name = name
-								
-# 				with rf.open(name) as f:
-# 					bytesIO = BytesIO()
-# 					bytesIO.write(f.read())
-# 					bytesIO.seek(0)
-# 					size = get_image_size_from_bytes(bytesIO)
-# 					model._width = size[0]
-# 					model._height = size[1]
-# 					image_models.append(model)
+ 			if is_allow_extensions_image(name):
+ 				model = BaseImageModel()
+ 				model._name = name
 				
-# 	return image_models
+                                if mode == "1":
+ 			        	with rf.open(name) as f:
+ 						bytesIO = BytesIO()
+ 				        	bytesIO.write(f.read())
+ 					        bytesIO.seek(0)
+ 					        size = get_image_size_from_bytes(bytesIO)
+ 					        model._width = size[0]
+ 					        model._height = size[1]
+ 				image_models.append(model)
+				
+ 	return image_models
 
 def get_image_data_in_dir(file_path):
 	""" 이미지 파일(file_path)의 데이터를 반환한다. """
@@ -385,11 +386,11 @@ def load_image_model2(req_path, archive, archive_ext):
 		response = flask.Response(data, headers=None, mimetype='application/json')
 		return response
 	
-	# elif archive_ext == 'rar':
-	# 	models = get_imagemodel_in_rar(archive_path)
-	# 	data = json.dumps(models, indent=4, cls=LightEncoder)
-	# 	response = flask.Response(data, headers=None, mimetype='application/json')
-	# 	return response
+	 elif archive_ext == 'rar':
+	 	models = get_imagemodel_in_rar(archive_path, mode)
+	 	data = json.dumps(models, indent=4, cls=LightEncoder)
+	 	response = flask.Response(data, headers=None, mimetype='application/json')
+	 	return response
 	return ('', 204)
 
 
