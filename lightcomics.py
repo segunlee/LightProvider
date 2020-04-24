@@ -214,15 +214,15 @@ def get_imagemodel_in_zip(zip_path, mode):
  			if is_allow_extensions_image(name):
  				model = BaseImageModel()
  				model._name = name
-				
-                                if mode == "1":
- 			        	with rf.open(name) as f:
+				if mode == "1":
+ 					with rf.open(name) as f:
  						bytesIO = BytesIO()
- 				        	bytesIO.write(f.read())
- 					        bytesIO.seek(0)
- 					        size = get_image_size_from_bytes(bytesIO)
- 					        model._width = size[0]
- 					        model._height = size[1]
+ 						bytesIO.write(f.read())
+ 						bytesIO.seek(0)
+ 						size = get_image_size_from_bytes(bytesIO)
+ 						model._width = size[0]
+ 						model._height = size[1]
+ 						
  				image_models.append(model)
 				
  	return image_models
