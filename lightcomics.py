@@ -225,7 +225,7 @@ def get_imagemodel_in_rar(rar_path, mode):
 				
 				image_models.append(model)
 
-return image_models
+	return image_models
 
 def get_image_data_in_dir(file_path):
 	""" 이미지 파일(file_path)의 데이터를 반환한다. """
