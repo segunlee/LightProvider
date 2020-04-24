@@ -7,7 +7,7 @@ import time
 import datetime
 import json
 import zipfile
-import rarfile
+# import rarfile
 import struct
 import imghdr
 import platform
@@ -21,11 +21,16 @@ from werkzeug.routing import BaseConverter
 from functools import wraps
 from io import StringIO
 from urllib.parse import *
+import tkinter as tk
+import threading
+from urllib.request import urlopen
+import re
+
 
 __version__ = (1, 0, 0)
 
 allow_extensions_image = ['jpg', 'gif', 'png', 'tif', 'bmp', 'jpeg', 'tiff']
-allow_extensions_archive = ['zip', 'cbz', 'rar']
+allow_extensions_archive = ['zip', 'cbz']
 allow_extensions = allow_extensions_image + allow_extensions_archive
 
 ZIP_FILENAME_UTF8_FLAG = 0x800
@@ -34,12 +39,20 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-CONF = json.loads(open('./lightcomics.json', 'r').read())
-ROOT = CONF['ROOT']
 
-# 경로 체크
-if not os.path.exists(ROOT):
-	raise Exception("No Root Directory!!!!")
+CONF_ROOT_PATH = ""
+CONF_SERVER_PORT = 8906
+
+if os.name == 'nt':
+	CONF_ROOT_PATH = "c:\\"
+	CONF_SERVER_PORT = 8906
+else:
+	CONF = json.loads(open('./lightcomics.json', 'r').read())
+	CONF_SERVER_PORT = CONF['ROOT']
+	if not os.path.exists(CONF_ROOT_PATH):
+		raise Exception("No Root Directory!!!!")
+
+
 
 # 앱 선언
 app = flask.Flask(__name__)
@@ -95,7 +108,7 @@ class BaseImageModel(LightEncoder):
 # 리스팅 모델
 class BaseListingModel(LightEncoder):
 	def __init__(self):
-		self._root = ROOT
+		self._root = CONF_ROOT_PATH
 		self._directories = []
 		self._archives = []
 		self._images = []
@@ -204,28 +217,28 @@ def get_imagemodel_in_zip(zip_path, mode):
 				
 	return image_models
 
-def get_imagemodel_in_rar(rar_path, mode):
-	""" 압축파일(rar_path)의 이미지파일의 name, width, height를 모아서 반환한다."""
-	image_models = []
+# def get_imagemodel_in_rar(rar_path, mode):
+# 	""" 압축파일(rar_path)의 이미지파일의 name, width, height를 모아서 반환한다."""
+# 	image_models = []
 	
-	with rarfile.RarFile(rar_path) as rf:
-		for name in rf.namelist():
+# 	with rarfile.RarFile(rar_path) as rf:
+# 		for name in rf.namelist():
 		
-			if is_allow_extensions_image(name):
-				model = BaseImageModel()
-				model._name = name
-				if mode == "1":
-					with rf.open(name) as f:
-						bytesIO = BytesIO()
-						bytesIO.write(f.read())
-						bytesIO.seek(0)
-						size = get_image_size_from_bytes(bytesIO)
-						model._width = size[0]
-						model._height = size[1]
+# 			if is_allow_extensions_image(name):
+# 				model = BaseImageModel()
+# 				model._name = name
+# 				if mode == "1":
+# 					with rf.open(name) as f:
+# 						bytesIO = BytesIO()
+# 						bytesIO.write(f.read())
+# 						bytesIO.seek(0)
+# 						size = get_image_size_from_bytes(bytesIO)
+# 						model._width = size[0]
+# 						model._height = size[1]
 				
-				image_models.append(model)
+# 				image_models.append(model)
 
-	return image_models
+# 	return image_models
 
 def get_image_data_in_dir(file_path):
 	""" 이미지 파일(file_path)의 데이터를 반환한다. """
@@ -333,7 +346,7 @@ def listing(req_path):
 	"""
 	app.logger.info("@app.route('/<path:req_path>/')")
 
-	basePath = get_real_path(ROOT, "")	
+	basePath = get_real_path(CONF_ROOT_PATH, "")	
 	full_path = "%s" % unquote(req_path)
 	full_real_path = get_real_path(basePath, full_path)
 	full_real_path = os.path.join(full_real_path, "")
@@ -366,7 +379,7 @@ def load_image_model2(req_path, archive, archive_ext):
 	"""
 	app.logger.info("@app.route('/<path:req_path>/<string:archive>.<string:archive_ext>/')")
 
-	basePath = get_real_path(ROOT, "")	
+	basePath = get_real_path(CONF_ROOT_PATH, "")	
 	full_path = "%s" % unquote(req_path)
 	full_real_path = get_real_path(basePath, full_path)
 	full_real_path = os.path.join(full_real_path, "")
@@ -386,11 +399,11 @@ def load_image_model2(req_path, archive, archive_ext):
 		response = flask.Response(data, headers=None, mimetype='application/json')
 		return response
 	
-	elif archive_ext == 'rar':
-		models = get_imagemodel_in_rar(archive_path, mode)
-		data = json.dumps(models, indent=4, cls=LightEncoder)
-		response = flask.Response(data, headers=None, mimetype='application/json')
-		return response
+	# elif archive_ext == 'rar':
+	# 	models = get_imagemodel_in_rar(archive_path, mode)
+	# 	data = json.dumps(models, indent=4, cls=LightEncoder)
+	# 	response = flask.Response(data, headers=None, mimetype='application/json')
+	# 	return response
 	
 	return ('', 204)
 
@@ -416,7 +429,7 @@ def load_image_data2(req_path, archive, archive_ext, img_path):
 	"""
 	app.logger.info("@app.route('/<path:req_path>/<string:archive>.<string:archive_ext>/<path:img_path>')")
 
-	basePath = get_real_path(ROOT, "")
+	basePath = get_real_path(CONF_ROOT_PATH, "")
 	full_path = "%s" % unquote(req_path)
 	full_real_path = get_real_path(basePath, full_path)
 	full_real_path = os.path.join(full_real_path, "")
@@ -448,7 +461,7 @@ def get_identifier(req_path):
 	"""
 	app.logger.info("@app.route('/id/<path:req_path>')")
 
-	basePath = get_real_path(ROOT, "")	
+	basePath = get_real_path(CONF_ROOT_PATH, "")	
 	full_path = "%s" % unquote(req_path)
 	full_real_path = get_real_path(basePath, full_path)
 	full_real_path = os.path.join(full_real_path, "")
@@ -463,8 +476,102 @@ def get_identifier(req_path):
 	return response
 
 
+# UI 구현
+
+def okClick():
+	global server_run
+	global server_state_label
+	global server_on_off_button
+	global server_threading
+	
+	if server_run == True:
+		shutdown_server()
+		server_state_label['text'] = "Server: Stopped"
+		server_on_off_button['text'] = " Start "
+	else:
+		updateServerPort()
+		server_threading.start()
+		server_state_label['text'] = "Server: Started"
+		server_on_off_button['text'] = " Stop "
+		
+	server_run = not server_run
+
+def start_server():
+	app.logger.info("Server Start: " + str(CONF_SERVER_PORT))
+	app.run(host="0.0.0.0", port=CONF_SERVER_PORT)
+	
+def shutdown_server():
+	# TODO: 서버 어떻게 멈추냐.. 안되네
+	# func = request.environ.get('werkzeug.server.shutdown')
+    #     if func is None:
+    #         raise RuntimeError('Not running with the Werkzeug Server')
+	# func()
+	app.logger.info("Sever Stopped")
+	# server_threading.join()
+	
+
+def getPublicIp():
+    data = str(urlopen('http://checkip.dyndns.com/').read())
+    return re.compile(r'Address: (\d+\.\d+\.\d+\.\d+)').search(data).group(1)
+
+def updateServerIP():
+	app.logger.info(getPublicIp())
+	public_ip.set(getPublicIp())
+
+def updateServerPort():
+	global CONF_SERVER_PORT
+	CONF_SERVER_PORT = int(server_port.get())
+	app.logger.info(CONF_SERVER_PORT)
+
+server_run = False
+server_threading = threading.Thread(target=start_server)
+
+
+window = tk.Tk()
+server_state_label = tk.Label(window, text="Server: Stopped", width=15, anchor="w", padx=10, pady=5)
+server_on_off_button = tk.Button(window, text=" Start ", command=okClick, width=20)
+
+public_ip = tk.StringVar()
+server_port = tk.StringVar()
+server_port.set(CONF_SERVER_PORT)
+public_ip_textbox = tk.Entry(window, width=20, textvariable=public_ip, state='readonly')
+server_port_textbox = tk.Entry(window, width=20, textvariable=server_port)
+
+
+def applicationUI():
+	global window
+	global server_state_label
+	global server_on_off_button
+	global public_ip
+
+	window.geometry("300x200")
+	window.title("Light Provider")
+	window.resizable(False, False)
+
+	reuse_label = tk.Label(window, text=" ", width=15, anchor="w")
+	reuse_label.grid(row=0, column=0)
+
+	server_state_label.grid(row=1, column=0)
+	server_on_off_button.grid(row=1, column=1)
+	
+	reuse_label = tk.Label(window, text="Server IP", width=15, anchor="w")
+	reuse_label.grid(row=2, column=0)
+	public_ip_textbox.grid(row=2, column=1)
+
+	reuse_label = tk.Label(window, text="Server Port", width=15, anchor="w")
+	reuse_label.grid(row=3, column=0)
+	server_port_textbox.grid(row=3, column=1)
+
+
+
+	
+	updateServerIP()
+
+	window.mainloop()
 
 
 # 앱 시작
 if __name__ == '__main__':
-	app.run(host=CONF['HOST'], port=CONF['PORT'], debug=True)
+	applicationUI()
+	
+	
