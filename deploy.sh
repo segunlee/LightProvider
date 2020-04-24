@@ -1,1 +1,1 @@
-nohup python ./lightcomics.py &
+nohup python3 ./lightcomics.py &
