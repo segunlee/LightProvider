@@ -386,11 +386,12 @@ def load_image_model2(req_path, archive, archive_ext):
 		response = flask.Response(data, headers=None, mimetype='application/json')
 		return response
 	
-	 elif archive_ext == 'rar':
-	 	models = get_imagemodel_in_rar(archive_path, mode)
-	 	data = json.dumps(models, indent=4, cls=LightEncoder)
-	 	response = flask.Response(data, headers=None, mimetype='application/json')
-	 	return response
+	elif archive_ext == 'rar':
+		models = get_imagemodel_in_rar(archive_path, mode)
+		data = json.dumps(models, indent=4, cls=LightEncoder)
+		response = flask.Response(data, headers=None, mimetype='application/json')
+		return response
+	
 	return ('', 204)
 
 
