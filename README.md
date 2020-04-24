@@ -18,7 +18,8 @@ Pillow
 ## 지원
 현재 zip 파일만 지원합니다.
 
-## run
+
+## How To Run?
 설정파일
 ```
 {
@@ -30,5 +31,11 @@ Pillow
 ```
 
 ```
-python lightcomics.py
+python lightcomics.py &
 ```
+
+
+## TODO
+- [O] Support Linux base OS 
+- [-] Support Windows OS
+- [-] Support Mac OSX
