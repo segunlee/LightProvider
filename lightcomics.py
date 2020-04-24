@@ -204,7 +204,7 @@ def get_imagemodel_in_zip(zip_path, mode):
 				
 	return image_models
 
- def get_imagemodel_in_rar(rar_path, mode):
+def get_imagemodel_in_rar(rar_path, mode):
  	""" 압축파일(rar_path)의 이미지파일의 name, width, height를 모아서 반환한다."""
  	image_models = []
 	
