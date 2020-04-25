@@ -1,6 +1,6 @@
 {
-  "ROOT": "/home/ubuntu/apps/LightProvider/files",
-  "PORT": 8909,
+  "ROOT": "C:\\Users\\LEESEGUN\\Documents\\LightProvider\\dist",
+  "PORT": 12370,
   "HOST": "0.0.0.0",
   "PASSWORD": ""
 }

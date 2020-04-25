@@ -3,3 +3,4 @@
 files/*
 __pycache__
 build
+dist/

@@ -22,9 +22,13 @@ from functools import wraps
 from io import StringIO
 from urllib.parse import *
 import tkinter as tk
+from tkinter import filedialog
+from tkinter import messagebox
 import threading
 from urllib.request import urlopen
 import re
+import socket
+
 
 
 __version__ = (1, 0, 0)
@@ -41,17 +45,21 @@ logger.setLevel(logging.INFO)
 
 
 CONF_ROOT_PATH = ""
-CONF_SERVER_PORT = 8906
+CONF_SERVER_PORT = 12370
+CONF_PASSWORD = ""
 
 if os.name == 'nt':
+	# Windows
 	CONF_ROOT_PATH = "c:\\"
-	CONF_SERVER_PORT = 8906
+	CONF_SERVER_PORT = 12370
+	CONF_PASSWORD = ""
 else:
+	# Linux Base OS
 	CONF = json.loads(open('./lightcomics.json', 'r').read())
 	CONF_SERVER_PORT = CONF['ROOT']
+	CONF_PASSWORD = CONF['PASSWORD']
 	if not os.path.exists(CONF_ROOT_PATH):
 		raise Exception("No Root Directory!!!!")
-
 
 
 # 앱 선언
@@ -59,7 +67,8 @@ app = flask.Flask(__name__)
 
 # 권한 체크
 def check_auth(username, password):
-	return username == 'LightComics' and password == CONF['PASSWORD']
+	app.logger.info("check auth, recevie password: " + password + " / save password: " + CONF_PASSWORD)
+	return username == 'LightComics' and password == CONF_PASSWORD
 
 # 권한 오류 반환
 def authenticate():
@@ -330,7 +339,7 @@ def getSizeOf(path):
 def root():
 	"""
 	리스팅
-	localhost:8909/
+	localhost:12370/
 	"""
 	app.logger.info("@app.route('/')")
 
@@ -342,7 +351,7 @@ def root():
 def listing(req_path):
 	"""
 	리스팅
-	localhost:8909/dir/
+	localhost:12370/dir/
 	"""
 	app.logger.info("@app.route('/<path:req_path>/')")
 
@@ -363,7 +372,7 @@ def listing(req_path):
 def load_image_model(archive, archive_ext):
 	"""
 	압축파일 내부 이미지 정보
-	localhost:8909/sample.zip/
+	localhost:12370/sample.zip/
 	"""
 	app.logger.info("@app.route('/<string:archive>.<string:archive_ext>/')")
 
@@ -375,7 +384,7 @@ def load_image_model(archive, archive_ext):
 def load_image_model2(req_path, archive, archive_ext):
 	"""
 	압축파일 내부 이미지 정보
-	localhost:8909/dir/sglee/sample.zip/
+	localhost:12370/dir/sglee/sample.zip/
 	"""
 	app.logger.info("@app.route('/<path:req_path>/<string:archive>.<string:archive_ext>/')")
 
@@ -412,8 +421,8 @@ def load_image_model2(req_path, archive, archive_ext):
 def load_image_data(archive, archive_ext, img_path):
 	"""
 	압축파일 내부 이미지 데이터 반환
-	localhost:8909/sample.zip/img1.jpg
-	localhost:8909/sample.zip/test/img1.jpg
+	localhost:12370/sample.zip/img1.jpg
+	localhost:12370/sample.zip/test/img1.jpg
 	"""
 	app.logger.info("@app.route('/<string:archive>.<string:archive_ext>/<path:img_path>')")
 	
@@ -424,8 +433,8 @@ def load_image_data(archive, archive_ext, img_path):
 def load_image_data2(req_path, archive, archive_ext, img_path):
 	"""
 	압축파일 내부 이미지 데이터 반환
-	localhost:8909/dir/sglee/sample.zip/img1.jpg
-	localhost:8909/dir/sglee/sample.zip/test/img1.jpg
+	localhost:12370/dir/sglee/sample.zip/img1.jpg
+	localhost:12370/dir/sglee/sample.zip/test/img1.jpg
 	"""
 	app.logger.info("@app.route('/<path:req_path>/<string:archive>.<string:archive_ext>/<path:img_path>')")
 
@@ -457,7 +466,7 @@ def load_image_data2(req_path, archive, archive_ext, img_path):
 def get_identifier(req_path):
 	"""
 	해당하는 경로의 파일 identifier를 반환한다.
-	localhost:8909/dir/hello.zip
+	localhost:12370/dir/hello.zip
 	"""
 	app.logger.info("@app.route('/id/<path:req_path>')")
 
@@ -478,27 +487,30 @@ def get_identifier(req_path):
 
 # UI 구현
 
-def okClick():
+def onClickServerState():
 	global server_run
 	global server_state_label
 	global server_on_off_button
 	global server_threading
 	
 	if server_run == True:
+		tk.messagebox.showinfo("알림", "서버 정지는 정상적으로 동작되지 않습니다.\n프로그램 종료후 재시작 해야 합니다.")
+		return
 		shutdown_server()
-		server_state_label['text'] = "Server: Stopped"
-		server_on_off_button['text'] = " Start "
+		server_state_label['text'] = "서버: 정지됨"
+		server_on_off_button['text'] = " 가동 "
 	else:
 		updateServerPort()
+		updatePassword()
 		server_threading.start()
-		server_state_label['text'] = "Server: Started"
-		server_on_off_button['text'] = " Stop "
+		server_state_label['text'] = "서버: 가동중"
+		server_on_off_button['text'] = " 정지 "
 		
 	server_run = not server_run
 
 def start_server():
 	app.logger.info("Server Start: " + str(CONF_SERVER_PORT))
-	app.run(host="0.0.0.0", port=CONF_SERVER_PORT)
+	app.run(host=local_ip.get(), port=CONF_SERVER_PORT)
 	
 def shutdown_server():
 	# TODO: 서버 어떻게 멈추냐.. 안되네
@@ -516,6 +528,7 @@ def getPublicIp():
 
 def updateServerIP():
 	app.logger.info(getPublicIp())
+	local_ip.set(socket.gethostbyname(socket.gethostname()))
 	public_ip.set(getPublicIp())
 
 def updateServerPort():
@@ -523,20 +536,48 @@ def updateServerPort():
 	CONF_SERVER_PORT = int(server_port.get())
 	app.logger.info(CONF_SERVER_PORT)
 
+def updatePassword():
+	global CONF_PASSWORD
+	CONF_PASSWORD = password_var.get()
+	app.logger.info(CONF_PASSWORD)
+
+def updateRootPath():
+	global CONF_ROOT_PATH
+	folder_selected = filedialog.askdirectory()
+	CONF_ROOT_PATH = folder_selected
+	root_path_var.set(CONF_ROOT_PATH)
+	app.logger.info(CONF_ROOT_PATH)
+
+def resource_path(relative_path):    
+	try:       
+		base_path = sys._MEIPASS
+	except Exception:
+		base_path = os.path.abspath(".")
+	return os.path.join(base_path, relative_path)
+
 server_run = False
 server_threading = threading.Thread(target=start_server)
 
 
 window = tk.Tk()
-server_state_label = tk.Label(window, text="Server: Stopped", width=15, anchor="w", padx=10, pady=5)
-server_on_off_button = tk.Button(window, text=" Start ", command=okClick, width=20)
+server_state_label = tk.Label(window, text="서버: 중지됨", width=15, anchor="w", padx=10, pady=5)
+server_on_off_button = tk.Button(window, text=" 가동 ", command=onClickServerState, width=20)
+change_root_path_button = tk.Button(window, text=" 변경 ", command=updateRootPath, width=20)
 
 public_ip = tk.StringVar()
+local_ip = tk.StringVar()
 server_port = tk.StringVar()
 server_port.set(CONF_SERVER_PORT)
+password_var = tk.StringVar()
+password_var.set(CONF_PASSWORD)
+root_path_var = tk.StringVar()
+root_path_var.set(CONF_ROOT_PATH)
+
+local_ip_textbox = tk.Entry(window, width=20, textvariable=local_ip, state='readonly')
 public_ip_textbox = tk.Entry(window, width=20, textvariable=public_ip, state='readonly')
 server_port_textbox = tk.Entry(window, width=20, textvariable=server_port)
-
+password_textbox = tk.Entry(window, width=20, textvariable=password_var)
+root_path_textbox = tk.Entry(window, width=20, textvariable=root_path_var, state='readonly')
 
 def applicationUI():
 	global window
@@ -547,22 +588,36 @@ def applicationUI():
 	window.geometry("300x200")
 	window.title("Light Provider")
 	window.resizable(False, False)
-
+	window.iconbitmap(default=resource_path('icon.ico'))
 	reuse_label = tk.Label(window, text=" ", width=15, anchor="w")
 	reuse_label.grid(row=0, column=0)
 
 	server_state_label.grid(row=1, column=0)
 	server_on_off_button.grid(row=1, column=1)
 	
-	reuse_label = tk.Label(window, text="Server IP", width=15, anchor="w")
+	reuse_label = tk.Label(window, text="Local IP", width=15, anchor="w")
 	reuse_label.grid(row=2, column=0)
-	public_ip_textbox.grid(row=2, column=1)
+	local_ip_textbox.grid(row=2, column=1)
 
-	reuse_label = tk.Label(window, text="Server Port", width=15, anchor="w")
+	reuse_label = tk.Label(window, text="Remote IP", width=15, anchor="w")
 	reuse_label.grid(row=3, column=0)
-	server_port_textbox.grid(row=3, column=1)
+	public_ip_textbox.grid(row=3, column=1)
 
+	reuse_label = tk.Label(window, text="서버 Port", width=15, anchor="w")
+	reuse_label.grid(row=4, column=0)
+	server_port_textbox.grid(row=4, column=1)
 
+	reuse_label = tk.Label(window, text="비밀번호", width=15, anchor="w")
+	reuse_label.grid(row=5, column=0)
+	password_textbox.grid(row=5, column=1)
+
+	reuse_label = tk.Label(window, text="공유 폴더", width=15, anchor="w")
+	reuse_label.grid(row=6, column=0)
+	root_path_textbox.grid(row=6, column=1)
+
+	reuse_label = tk.Label(window, text="폴더 변경", width=15, anchor="w")
+	reuse_label.grid(row=7, column=0)
+	change_root_path_button.grid(row=7, column=1)
 
 	
 	updateServerIP()
