@@ -31,7 +31,7 @@ import socket
 
 
 
-__version__ = (1, 0, 0)
+__version__ = (1, 0, 2)
 
 allow_extensions_image = ['jpg', 'gif', 'png', 'tif', 'bmp', 'jpeg', 'tiff']
 allow_extensions_archive = ['zip', 'cbz']
@@ -188,7 +188,7 @@ def get_imagemodel_in_dir(dir_path, mode):
 	
 		if is_allow_extensions_image(name):
 			model = BaseImageModel()
-			model._name = dir_path + name
+			model._name = os.path.join(dir_path, name).replace("\\","/")
 			if mode == "1":
 				with open(model._name, mode='rb') as f:
 					bytesIO = BytesIO()
@@ -277,7 +277,7 @@ def get_listing_model(path):
 	listing_model = BaseListingModel()
 
 	for name in os.listdir(path):
-		full_path = path + name
+		full_path = os.path.join(path, name).replace("\\","/")
 		
 		if os.path.isdir(full_path):
 			listing_model._directories.append(full_path)
@@ -307,7 +307,9 @@ def get_unique_identifier(path):
 def get_real_path(base, abs_path):
 	""" 실제 경로를 반환한다 """
 	abs_path = unquote(abs_path)
-	real_path = os.path.join(base, abs_path)
+	if abs_path == "":
+		return base
+	real_path = os.path.join(base, abs_path).replace("\\","/")
 	return real_path
 
 def remove_trail_slash(s):
@@ -324,7 +326,7 @@ def getSizeOf(path):
 		return total_size
 
 	for item in os.listdir(path):
-		itempath = os.path.join(folder, item)
+		itempath = os.path.join(folder, item).replace("\\","/")
 		if os.path.isfile(itempath):
 			total_size += os.path.getsize(itempath)
 		elif os.path.isdir(itempath):
@@ -351,14 +353,14 @@ def root():
 def listing(req_path):
 	"""
 	리스팅
-	localhost:12370/dir/
+	localhost:12370/req_path/
 	"""
 	app.logger.info("@app.route('/<path:req_path>/')")
 
 	basePath = get_real_path(CONF_ROOT_PATH, "")	
 	full_path = "%s" % unquote(req_path)
 	full_real_path = get_real_path(basePath, full_path)
-	full_real_path = os.path.join(full_real_path, "")
+	full_real_path = os.path.join(full_real_path, "").replace("\\","/")
 	app.logger.info(full_real_path)
 
 	model = get_listing_model(full_real_path)
@@ -391,11 +393,12 @@ def load_image_model2(req_path, archive, archive_ext):
 	basePath = get_real_path(CONF_ROOT_PATH, "")	
 	full_path = "%s" % unquote(req_path)
 	full_real_path = get_real_path(basePath, full_path)
-	full_real_path = os.path.join(full_real_path, "")
+	full_real_path = os.path.join(full_real_path, "").replace("\\","/")
 	app.logger.info(full_real_path)
 
-	archive_name = archive + "." + archive_ext
-	archive_path = os.path.join(full_real_path, archive_name)
+
+	archive_name = "%s" % unquote(archive) + "." + archive_ext
+	archive_path = os.path.join(full_real_path, archive_name).replace("\\","/")
 
 	app.logger.info(archive_path)
 
@@ -441,12 +444,12 @@ def load_image_data2(req_path, archive, archive_ext, img_path):
 	basePath = get_real_path(CONF_ROOT_PATH, "")
 	full_path = "%s" % unquote(req_path)
 	full_real_path = get_real_path(basePath, full_path)
-	full_real_path = os.path.join(full_real_path, "")
+	full_real_path = os.path.join(full_real_path, "").replace("\\","/")
 	
 	app.logger.info(full_real_path)
 
-	archive_name = archive + "." + archive_ext
-	archive_path = os.path.join(full_real_path, archive_name)
+	archive_name = "%s" % unquote(archive) + "." + archive_ext
+	archive_path = os.path.join(full_real_path, archive_name).replace("\\","/")
 	
 	app.logger.info(archive_path)
 
@@ -473,7 +476,7 @@ def get_identifier(req_path):
 	basePath = get_real_path(CONF_ROOT_PATH, "")	
 	full_path = "%s" % unquote(req_path)
 	full_real_path = get_real_path(basePath, full_path)
-	full_real_path = os.path.join(full_real_path, "")
+	full_real_path = os.path.join(full_real_path, "").replace("\\","/")
 	app.logger.info(full_real_path)
 
 	model = BaseIdentifierModel()
