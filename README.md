@@ -13,6 +13,7 @@
 ```
 Flask
 Pillow
+Tkinter
 ```
 
 ## 지원
@@ -26,7 +27,8 @@ Pillow
 
 
 리눅스:
-설정파일
+실행파일 lightcomics.py
+설정파일 lightcomics.json
 ```
 {
   "ROOT": "/home/user/ec2-user/manhwa",
