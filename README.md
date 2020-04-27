@@ -1,4 +1,4 @@
-# 개발중
+# 베타 서비스중
 
 
 # LightProvider - Python-based LightComics Server
@@ -20,6 +20,12 @@ Pillow
 
 
 ## How To Run?
+
+원도우: https://github.com/segunlee/LightProvider/releases/download/1.0.2/LightProvider.exe
+
+
+
+리눅스:
 설정파일
 ```
 {
@@ -37,5 +43,5 @@ python lightcomics.py &
 
 ## TODO
 - [O] Support Linux base OS 
-- [-] Support Windows OS
+- [O] Support Windows OS
 - [-] Support Mac OSX
