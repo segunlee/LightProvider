@@ -30,32 +30,52 @@ import re
 import socket
 
 
+# 버전
+__version__ = (1, 0, 3)
 
-__version__ = (1, 0, 2)
 
+# 변수 설정
 allow_extensions_image = ['jpg', 'gif', 'png', 'tif', 'bmp', 'jpeg', 'tiff']
 allow_extensions_archive = ['zip', 'cbz']
 allow_extensions = allow_extensions_image + allow_extensions_archive
 
 ZIP_FILENAME_UTF8_FLAG = 0x800
 
+
+
+# 로거 설정
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
+
+# 설정파일 로그
 CONF_ROOT_PATH = ""
 CONF_SERVER_PORT = 12370
 CONF_PASSWORD = ""
 CONF_HOST = "0.0.0.0"
 
-if os.name == 'nt':
-	# Windows
-	CONF_ROOT_PATH = "c:\\"
+
+# 운영체제 변수
+IS_OS_WINDOWS = sys.platform == 'win32'
+IS_OS_MACOSX = sys.platform == 'darwin'
+IS_OS_LINUX = sys.platform == 'linux'
+
+
+
+
+if IS_OS_WINDOWS:
+	CONF_ROOT_PATH = "c:/"
 	CONF_SERVER_PORT = 12370
 	CONF_PASSWORD = ""
-else:
-	# Linux Base OS
+	
+elif IS_OS_MACOSX:
+	CONF_ROOT_PATH = "/"
+	CONF_SERVER_PORT = 12370
+	CONF_PASSWORD = ""
+	
+elif IS_OS_LINUX:
 	CONF = json.loads(open('./lightcomics.json', 'r').read())
 	CONF_ROOT_PATH = CONF['ROOT']
 	CONF_SERVER_PORT = CONF['PORT']
@@ -64,13 +84,17 @@ else:
 	if not os.path.exists(CONF_ROOT_PATH):
 		raise Exception("No Root Directory!!!!")
 
+else:
+	raise Exception("hmm?")
+
+
 
 # 앱 선언
 app = flask.Flask(__name__)
 
+
 # 권한 체크
 def check_auth(username, password):
-	app.logger.info("check auth, recevie password: " + password + " / save password: " + CONF_PASSWORD)
 	return username == 'LightComics' and password == CONF_PASSWORD
 
 # 권한 오류 반환
@@ -79,7 +103,7 @@ def authenticate():
 		'You have to login with proper credentials', 401,
 		{'WWW-Authenticate': 'Basic realm="Login Required"'})
 
-        # 권한 요구
+# 권한 요구
 def requires_auth(f):
 	@wraps(f)
 	def decorated(*args, **kwargs):
@@ -95,16 +119,11 @@ class LightEncoder(json.JSONEncoder):
 	def default(self, o):
 		return o.__dict__
 
-
 # Identifier 모델
 class BaseIdentifierModel(LightEncoder):
 	def __init__(self):
 		self._path = ""
 		self._identifier = ""
-
-	def __str__(self):
-		return "BaseIdentifierModel (%s, %s)" % (self._path, self._identifier)
-
 
 # 이미지 모델
 class BaseImageModel(LightEncoder):
@@ -114,9 +133,6 @@ class BaseImageModel(LightEncoder):
 		self._width = -1
 		self._height = -1
 
-	def __str__(self):
-		return "BaseImageModel %s (%sx%d)" % (self._name, self._width, self._height)
-
 # 리스팅 모델
 class BaseListingModel(LightEncoder):
 	def __init__(self):
@@ -125,9 +141,8 @@ class BaseListingModel(LightEncoder):
 		self._archives = []
 		self._images = []
 
-	def __str__(self):
-		return "BaseListingModel %s | %s | %s)" % (self._directories, self._archives, self._images)
 
+# 함수
 def fix_str(str):
 	name = str
 	
@@ -408,7 +423,7 @@ def load_image_model2(req_path, archive, archive_ext):
 	mode = request.args.get('mode', "0")
 	app.logger.info("mode: " + mode)
 
-	if archive_ext == 'zip':
+	if archive_ext == 'zip' or archive_ext == 'cbz':
 		models = get_imagemodel_in_zip(archive_path, mode)
 		data = json.dumps(models, indent=4, cls=LightEncoder)
 		response = flask.Response(data, headers=None, mimetype='application/json')
@@ -459,8 +474,7 @@ def load_image_data2(req_path, archive, archive_ext, img_path):
 	img_path = unquote(img_path)
 	app.logger.info(img_path)
 
-	if archive_ext == 'zip':
-		
+	if archive_ext == 'zip' or archive_ext == 'cbz':
 		img = get_image_data_in_zip(archive_path, img_path)
 		return flask.send_file(img, attachment_filename=os.path.basename(img_path), as_attachment=True)
 
@@ -565,7 +579,7 @@ def resource_path(relative_path):
 
 
 # Set UI values for Windows
-if os.name == 'nt':
+if IS_OS_WINDOWS:
 	server_run = False
 	server_threading = threading.Thread(target=start_server)
 
@@ -636,15 +650,21 @@ def applicationUI():
 	window.mainloop()
 
 
+
 # 앱 시작
 if __name__ == '__main__':
 
-	if os.name == 'nt':
-		# Windows OS
+	if IS_OS_WINDOWS:
 		applicationUI()
-	else:
-		# Linux Base OS
+		
+	elif IS_OS_MACOS :
+		print("not yet")
+		
+	elif IS_OS_LINUX:
 		app.run(host=CONF_HOST, port=CONF_SERVER_PORT)
+		
+	else:
+		print("hmm..?")
 		
 	
 	
