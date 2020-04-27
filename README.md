@@ -13,6 +13,7 @@
 ```
 Flask
 Pillow
+requests
 Tkinter
 ```
 
@@ -22,7 +23,7 @@ Tkinter
 
 ## How To Run?
 
-원도우: https://github.com/segunlee/LightProvider/releases/download/1.0.2/LightProvider.exe
+원도우: https://github.com/segunlee/LightProvider/releases/download/1.0.3/LightProvider.exe
 
 
 

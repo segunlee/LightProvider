@@ -17,6 +17,7 @@ import flask
 import re
 import socket
 import threading
+import requests
 from flask import request
 from PIL import Image
 from io import BytesIO
@@ -27,7 +28,7 @@ import tkinter as tk
 from tkinter import filedialog
 from tkinter import messagebox
 from urllib.request import urlopen
-from urllib.parse import *
+from urllib.parse import unquote
 
 # 버전
 __version__ = (1, 0, 3)
@@ -352,11 +353,11 @@ def getSizeOf(path):
 		return total_size
 
 	for item in os.listdir(path):
-		itempath = os.path.join(folder, item).replace("\\", "/")
+		itempath = os.path.join(path, item).replace("\\", "/")
 		if os.path.isfile(itempath):
 			total_size += os.path.getsize(itempath)
 		elif os.path.isdir(itempath):
-			total_size += getFolderSize(itempath)
+			total_size += getSizeOf(itempath)
 	return total_size
 
 
@@ -522,29 +523,42 @@ def get_identifier(req_path):
 	response = flask.Response(data, headers=None, mimetype='application/json')
 	return response
 
+@app.route('/stop')
+def stop_server_by_request():
+	func = request.environ.get('werkzeug.server.shutdown')
+	if func is None:
+		raise RuntimeError('Not running with the Werkzeug Server')
+	app.logger.info("shutdown...")
+	func()
+	app.logger.info("shutdown...")
+
 
 # UI 구현 for Windows or Mac OSX
 
-
+server_run = False
 def onClickServerState():
 	global server_run
 	global server_state_label
 	global server_on_off_button
-	global server_threading
 
 	if server_run == True:
-		tk.messagebox.showinfo(
-			"알림", "서버 정지는 정상적으로 동작되지 않습니다.\n프로그램 종료후 재시작 해야 합니다.")
-		return
 		shutdown_server()
 		server_state_label['text'] = "서버: 정지됨"
 		server_on_off_button['text'] = " 가동 "
+
+		server_port_textbox.configure(state="normal")
+		password_textbox.configure(state="normal")
+		
 	else:
 		updateServerPort()
 		updatePassword()
+		server_threading = threading.Thread(target=start_server)
 		server_threading.start()
 		server_state_label['text'] = "서버: 가동중"
 		server_on_off_button['text'] = " 정지 "
+
+		server_port_textbox.configure(state="disabled")
+		password_textbox.configure(state="disabled")
 
 	server_run = not server_run
 
@@ -555,13 +569,9 @@ def start_server():
 
 
 def shutdown_server():
-	# TODO: 서버 어떻게 멈추냐.. 안되네
-	# func = request.environ.get('werkzeug.server.shutdown')
-	#	 if func is None:
-	#		 raise RuntimeError('Not running with the Werkzeug Server')
-	# func()
+	URL = "http://" + CONF_HOST + ":" + str(CONF_SERVER_PORT) + "/stop"
+	requests.get(URL)
 	app.logger.info("Sever Stopped")
-	# server_threading.join()
 
 
 def getPublicIp():
@@ -570,7 +580,9 @@ def getPublicIp():
 
 
 def updateServerIP():
+	global CONF_HOST
 	app.logger.info(getPublicIp())
+	CONF_HOST = socket.gethostbyname(socket.gethostname())
 	local_ip.set(socket.gethostbyname(socket.gethostname()))
 	public_ip.set(getPublicIp())
 
@@ -589,6 +601,11 @@ def updatePassword():
 
 def updateRootPath():
 	global CONF_ROOT_PATH
+
+	if server_run == True:
+		tk.messagebox.showinfo("알림", "서버 가동중에 경로를 변경할 수 없습니다.")
+		return
+
 	folder_selected = filedialog.askdirectory()
 	CONF_ROOT_PATH = folder_selected
 	root_path_var.set(CONF_ROOT_PATH)
@@ -604,25 +621,11 @@ def resource_path(relative_path):
 
 
 # Set UI values for Windows
-server_run = False
 if IS_OS_WINDOWS:
-	server_threading = threading.Thread(target=start_server)
-
 	window = tk.Tk()
-	server_state_label = tk.Label(window,
-								  text="서버: 중지됨",
-								  width=15,
-								  anchor="w",
-								  padx=10,
-								  pady=5)
-	server_on_off_button = tk.Button(window,
-									 text=" 가동 ",
-									 command=onClickServerState,
-									 width=20)
-	change_root_path_button = tk.Button(window,
-										text=" 변경 ",
-										command=updateRootPath,
-										width=20)
+	server_state_label = tk.Label(window, text="서버: 중지됨", width=15, anchor="w", padx=10, pady=5)
+	server_on_off_button = tk.Button(window, text=" 가동 ", command=onClickServerState, width=20)
+	change_root_path_button = tk.Button(window, text=" 변경 ", command=updateRootPath, width=20)
 
 	public_ip = tk.StringVar()
 	local_ip = tk.StringVar()
@@ -633,20 +636,11 @@ if IS_OS_WINDOWS:
 	root_path_var = tk.StringVar()
 	root_path_var.set(CONF_ROOT_PATH)
 
-	local_ip_textbox = tk.Entry(window,
-								width=20,
-								textvariable=local_ip,
-								state='readonly')
-	public_ip_textbox = tk.Entry(window,
-								 width=20,
-								 textvariable=public_ip,
-								 state='readonly')
+	local_ip_textbox = tk.Entry(window, width=20, textvariable=local_ip, state='readonly')
+	public_ip_textbox = tk.Entry(window, width=20, textvariable=public_ip, state='readonly')
 	server_port_textbox = tk.Entry(window, width=20, textvariable=server_port)
 	password_textbox = tk.Entry(window, width=20, textvariable=password_var)
-	root_path_textbox = tk.Entry(window,
-								 width=20,
-								 textvariable=root_path_var,
-								 state='readonly')
+	root_path_textbox = tk.Entry(window, width=20, textvariable=root_path_var, state='readonly')
 
 
 def applicationUI():
