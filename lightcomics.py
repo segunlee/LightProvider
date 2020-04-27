@@ -47,6 +47,7 @@ logger.setLevel(logging.INFO)
 CONF_ROOT_PATH = ""
 CONF_SERVER_PORT = 12370
 CONF_PASSWORD = ""
+CONF_HOST = "0.0.0.0"
 
 if os.name == 'nt':
 	# Windows
@@ -59,6 +60,7 @@ else:
 	CONF_ROOT_PATH = CONF['ROOT']
 	CONF_SERVER_PORT = CONF['PORT']
 	CONF_PASSWORD = CONF['PASSWORD']
+	CONF_HOST= CONF['HOST'];
 	if not os.path.exists(CONF_ROOT_PATH):
 		raise Exception("No Root Directory!!!!")
 
@@ -489,7 +491,9 @@ def get_identifier(req_path):
 	return response
 
 
-# UI 구현
+
+
+# UI 구현 for Windows or Mac OSX
 
 def onClickServerState():
 	global server_run
@@ -559,29 +563,32 @@ def resource_path(relative_path):
 		base_path = os.path.abspath(".")
 	return os.path.join(base_path, relative_path)
 
-server_run = False
-server_threading = threading.Thread(target=start_server)
+
+# Set UI values for Windows
+if os.name != 'nt':
+	server_run = False
+	server_threading = threading.Thread(target=start_server)
 
 
-window = tk.Tk()
-server_state_label = tk.Label(window, text="서버: 중지됨", width=15, anchor="w", padx=10, pady=5)
-server_on_off_button = tk.Button(window, text=" 가동 ", command=onClickServerState, width=20)
-change_root_path_button = tk.Button(window, text=" 변경 ", command=updateRootPath, width=20)
+	window = tk.Tk()
+	server_state_label = tk.Label(window, text="서버: 중지됨", width=15, anchor="w", padx=10, pady=5)
+	server_on_off_button = tk.Button(window, text=" 가동 ", command=onClickServerState, width=20)
+	change_root_path_button = tk.Button(window, text=" 변경 ", command=updateRootPath, width=20)
 
-public_ip = tk.StringVar()
-local_ip = tk.StringVar()
-server_port = tk.StringVar()
-server_port.set(CONF_SERVER_PORT)
-password_var = tk.StringVar()
-password_var.set(CONF_PASSWORD)
-root_path_var = tk.StringVar()
-root_path_var.set(CONF_ROOT_PATH)
+	public_ip = tk.StringVar()
+	local_ip = tk.StringVar()
+	server_port = tk.StringVar()
+	server_port.set(CONF_SERVER_PORT)
+	password_var = tk.StringVar()
+	password_var.set(CONF_PASSWORD)
+	root_path_var = tk.StringVar()
+	root_path_var.set(CONF_ROOT_PATH)
 
-local_ip_textbox = tk.Entry(window, width=20, textvariable=local_ip, state='readonly')
-public_ip_textbox = tk.Entry(window, width=20, textvariable=public_ip, state='readonly')
-server_port_textbox = tk.Entry(window, width=20, textvariable=server_port)
-password_textbox = tk.Entry(window, width=20, textvariable=password_var)
-root_path_textbox = tk.Entry(window, width=20, textvariable=root_path_var, state='readonly')
+	local_ip_textbox = tk.Entry(window, width=20, textvariable=local_ip, state='readonly')
+	public_ip_textbox = tk.Entry(window, width=20, textvariable=public_ip, state='readonly')
+	server_port_textbox = tk.Entry(window, width=20, textvariable=server_port)
+	password_textbox = tk.Entry(window, width=20, textvariable=password_var)
+	root_path_textbox = tk.Entry(window, width=20, textvariable=root_path_var, state='readonly')
 
 def applicationUI():
 	global window
@@ -631,6 +638,13 @@ def applicationUI():
 
 # 앱 시작
 if __name__ == '__main__':
-	applicationUI()
+
+	if os.name == 'nt':
+		# Windows OS
+		applicationUI()
+	else:
+		# Linux Base OS
+		app.run(host=CONF_HOST, port=CONF_SERVER_PORT)
+		
 	
 	
