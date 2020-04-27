@@ -657,7 +657,7 @@ if __name__ == '__main__':
 	if IS_OS_WINDOWS:
 		applicationUI()
 		
-	elif IS_OS_MACOS :
+	elif IS_OS_MACOSX:
 		print("not yet")
 		
 	elif IS_OS_LINUX:
