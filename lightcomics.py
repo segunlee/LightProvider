@@ -56,7 +56,8 @@ if os.name == 'nt':
 else:
 	# Linux Base OS
 	CONF = json.loads(open('./lightcomics.json', 'r').read())
-	CONF_SERVER_PORT = CONF['ROOT']
+	CONF_ROOT_PATH = CONF['ROOT']
+	CONF_SERVER_PORT = CONF['PORT']
 	CONF_PASSWORD = CONF['PASSWORD']
 	if not os.path.exists(CONF_ROOT_PATH):
 		raise Exception("No Root Directory!!!!")
