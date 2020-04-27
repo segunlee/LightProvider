@@ -565,7 +565,7 @@ def resource_path(relative_path):
 
 
 # Set UI values for Windows
-if os.name != 'nt':
+if os.name == 'nt':
 	server_run = False
 	server_threading = threading.Thread(target=start_server)
 
