@@ -565,7 +565,10 @@ def onClickServerState():
 
 def start_server():
 	app.logger.info("Server Start: " + str(CONF_SERVER_PORT))
-	app.run(host=local_ip.get(), port=CONF_SERVER_PORT)
+	host = local_ip.get()
+	if IS_OS_MACOSX:
+		host = "0.0.0.0" # check after
+	app.run(host=host, port=CONF_SERVER_PORT)
 
 
 def shutdown_server():
@@ -601,7 +604,7 @@ def updatePassword():
 
 def updateRootPath():
 	global CONF_ROOT_PATH
-
+	app.logger.info('ddd')
 	if server_run == True:
 		tk.messagebox.showinfo("알림", "서버 가동중에 경로를 변경할 수 없습니다.")
 		return
@@ -621,7 +624,7 @@ def resource_path(relative_path):
 
 
 # Set UI values for Windows
-if IS_OS_WINDOWS:
+if IS_OS_WINDOWS or IS_OS_MACOSX:
 	window = tk.Tk()
 	server_state_label = tk.Label(window, text="서버: 중지됨", width=15, anchor="w", padx=10, pady=5)
 	server_on_off_button = tk.Button(window, text=" 가동 ", command=onClickServerState, width=20)
@@ -649,10 +652,16 @@ def applicationUI():
 	global server_on_off_button
 	global public_ip
 
-	window.geometry("300x200")
+	if IS_OS_WINDOWS:
+		window.geometry("300x200")
+	else:
+		window.geometry("350x250")
+
 	window.title("Light Provider")
 	window.resizable(False, False)
-	window.iconbitmap(default=resource_path('icon.ico'))
+	if IS_OS_WINDOWS:
+		window.iconbitmap(default=resource_path('icon.ico'))
+	
 	reuse_label = tk.Label(window, text=" ", width=15, anchor="w")
 	reuse_label.grid(row=0, column=0)
 
@@ -695,7 +704,7 @@ if __name__ == '__main__':
 		applicationUI()
 
 	elif IS_OS_MACOSX:
-		print("not yet")
+		applicationUI()
 
 	elif IS_OS_LINUX:
 		app.run(host=CONF_HOST, port=CONF_SERVER_PORT)

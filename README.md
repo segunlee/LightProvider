@@ -25,7 +25,7 @@ Tkinter
 
 원도우: https://github.com/segunlee/LightProvider/releases/download/1.0.3/LightProvider.exe
 
-
+맥 OSX: https://github.com/segunlee/LightProvider/releases/download/1.0.3/LightProvider.zip
 
 리눅스:
 실행파일 lightcomics.py
@@ -47,4 +47,4 @@ python lightcomics.py &
 ## TODO
 - [O] Support Linux base OS 
 - [O] Support Windows OS
-- [-] Support Mac OSX
+- [O] Support Mac OSX
