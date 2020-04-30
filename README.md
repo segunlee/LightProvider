@@ -25,7 +25,7 @@ Tkinter
 
 원도우: https://github.com/segunlee/LightProvider/releases/download/1.0.3/LightProvider.exe
 
-맥 OSX: https://github.com/segunlee/LightProvider/releases/download/1.0.3/LightProvider.zip
+맥 OSX: https://github.com/segunlee/LightProvider/releases/download/1.0.3/LightProvider.app.zip
 
 리눅스:
 실행파일 lightcomics.py
