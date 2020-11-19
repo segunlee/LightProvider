@@ -1,6 +1,6 @@
 {
-  "ROOT": "/home/ubuntu/apps/LightProvider/files",
+  "ROOT": "/DataCenter/",
   "PORT": 12370,
   "HOST": "0.0.0.0",
-  "PASSWORD": ""
+  "PASSWORD": "1234"
 }
