@@ -15,6 +15,7 @@ Flask
 Pillow
 requests
 Tkinter
+chardet
 ```
 
 ## 지원
