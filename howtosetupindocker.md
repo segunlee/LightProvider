@@ -16,7 +16,7 @@
 3. 레지스트리 메뉴로 이동하여 pyhton 검색 후 최상위에 있는 python 다운로드 (버전은 latest)<br />![screenshot2](howtosetupindocker/screenshot2.png) 
 4. 이미지 메뉴로 이동하여 pyhton:latest 더블클릭
 5. 컨테이너 이름 직접 지정 (예: LightProvider)<br />![screenshot3](howtosetupindocker/screenshot3.png)
-6. 고급 설정 클릭<br />![image](https://user-images.githubusercontent.com/3186834/110463952-e1f29580-8115-11eb-9859-ab3a9e1d4c68.png)
+6. 고급 설정 클릭
 7. 볼륨탭에 이동하여 설정<br />![screenshot4](howtosetupindocker/screenshot4.png)
     ```
     파일/폴더: 시놀로지에 있는 디렉토리를 지정합니다. (압축된 이미지파일)
