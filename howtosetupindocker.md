@@ -32,7 +32,7 @@
     ```
    
 8. 포트 설정탭으로 이동하여 설정
-    ![screenshot5](howtosetupindocker/screenshot5.png)
+![screenshot5](howtosetupindocker/screenshot5.png)
 
     ```
     로컬 포트: 12370
