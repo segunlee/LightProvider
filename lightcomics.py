@@ -35,7 +35,7 @@ __version__ = (1, 0, 3)
 
 # 변수 설정
 EXTENSIONS_ALLOW_IMAGE = ['JPG', 'GIF', 'PNG', 'TIF', 'BMP', 'JPEG', 'TIFF']
-EXTENSIONS_ALLOW_ARCHIVE = ['zip', 'cbz']
+EXTENSIONS_ALLOW_ARCHIVE = ['ZIP', 'CBZ']
 EXTENSIONS_ALLOW = EXTENSIONS_ALLOW_IMAGE + EXTENSIONS_ALLOW_ARCHIVE
 
 # 로거 설정
@@ -192,7 +192,7 @@ def is_EXTENSIONS_ALLOW_IMAGE(file_name):
 def is_EXTENSIONS_ALLOW_ARCHIVE(file_name):
 	""" 허용된 압축파일 확장자인 경우 True를 반환한다 """
 	extension = get_extension(file_name)
-	if extension not in EXTENSIONS_ALLOW_ARCHIVE:
+	if extension.upper() not in EXTENSIONS_ALLOW_ARCHIVE:
 		return False
 	else:
 		return True
