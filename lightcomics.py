@@ -34,7 +34,7 @@ from urllib.parse import unquote
 __version__ = (1, 0, 3)
 
 # 변수 설정
-EXTENSIONS_ALLOW_IMAGE = ['jpg', 'gif', 'png', 'tif', 'bmp', 'jpeg', 'tiff']
+EXTENSIONS_ALLOW_IMAGE = ['JPG', 'GIF', 'PNG', 'TIF', 'BMP', 'JPEG', 'TIFF']
 EXTENSIONS_ALLOW_ARCHIVE = ['zip', 'cbz']
 EXTENSIONS_ALLOW = EXTENSIONS_ALLOW_IMAGE + EXTENSIONS_ALLOW_ARCHIVE
 
@@ -183,7 +183,7 @@ def get_extension(file_name):
 def is_EXTENSIONS_ALLOW_IMAGE(file_name):
 	""" 허용된 이미지 확장자인 경우 True를 반환한다 """
 	extension = get_extension(file_name)
-	if extension not in EXTENSIONS_ALLOW_IMAGE:
+	if extension.upper() not in EXTENSIONS_ALLOW_IMAGE:
 		return False
 	else:
 		return True
