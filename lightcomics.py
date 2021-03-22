@@ -7,7 +7,6 @@ import time
 import datetime
 import json
 import zipfile
-# import rarfile
 import struct
 import imghdr
 import platform
@@ -29,6 +28,15 @@ from tkinter import filedialog
 from tkinter import messagebox
 from urllib.request import urlopen
 from urllib.parse import unquote
+import importlib
+
+rarfileSpec = importlib.util.find_spec("rarfile")
+isRarLibImported = rarfileSpec is not None
+
+if isRarLibImported:
+	import rarfile
+
+print(isRarLibImported)
 
 # 버전
 __version__ = (1, 0, 3)
@@ -36,7 +44,10 @@ __version__ = (1, 0, 3)
 # 변수 설정
 EXTENSIONS_ALLOW_IMAGE = ['JPG', 'GIF', 'PNG', 'TIF', 'BMP', 'JPEG', 'TIFF']
 EXTENSIONS_ALLOW_ARCHIVE = ['ZIP', 'CBZ']
+if isRarLibImported:
+	EXTENSIONS_ALLOW_ARCHIVE = EXTENSIONS_ALLOW_ARCHIVE + ['RAR', 'CBR']
 EXTENSIONS_ALLOW = EXTENSIONS_ALLOW_IMAGE + EXTENSIONS_ALLOW_ARCHIVE
+
 
 # 로거 설정
 logging.basicConfig(level=logging.INFO)
@@ -141,7 +152,7 @@ def fix_str(str):
 	name = str
 	try:
 		name = name.encode('cp437').decode('cp949')
-	except UnicodeEncodeError:
+	except UnicodeDecodeError:
 		name = name.encode('utf8')
 		encoding = chardet.detect(name)['encoding']
 		name = name.decode(encoding)
@@ -227,7 +238,8 @@ def get_imagemodel_in_zip(zip_path, mode):
 
 	with zipfile.ZipFile(zip_path) as zf:
 		for name in zf.namelist():
-
+			if "__MACOSX/" in name:
+				continue
 			if is_EXTENSIONS_ALLOW_IMAGE(name):
 				model = BaseImageModel()
 				model._name = name
@@ -246,28 +258,29 @@ def get_imagemodel_in_zip(zip_path, mode):
 	return image_models
 
 
-# def get_imagemodel_in_rar(rar_path, mode):
-# 	""" 압축파일(rar_path)의 이미지파일의 name, width, height를 모아서 반환한다."""
-# 	image_models = []
+def get_imagemodel_in_rar(rar_path, mode):
+	""" 압축파일(rar_path)의 이미지파일의 name, width, height를 모아서 반환한다."""
+	image_models = []
 
-# 	with rarfile.RarFile(rar_path) as rf:
-# 		for name in rf.namelist():
+	with rarfile.RarFile(rar_path) as rf:
+		for name in rf.namelist():
+			if "__MACOSX/" in name:
+				continue
+			if is_EXTENSIONS_ALLOW_IMAGE(name):
+				model = BaseImageModel()
+				model._name = name
+				if mode == "1":
+					with rf.open(name) as f:
+						bytesIO = BytesIO()
+						bytesIO.write(f.read())
+						bytesIO.seek(0)
+						size = get_image_size_from_bytes(bytesIO)
+						model._width = size[0]
+						model._height = size[1]
 
-# 			if is_EXTENSIONS_ALLOW_IMAGE(name):
-# 				model = BaseImageModel()
-# 				model._name = name
-# 				if mode == "1":
-# 					with rf.open(name) as f:
-# 						bytesIO = BytesIO()
-# 						bytesIO.write(f.read())
-# 						bytesIO.seek(0)
-# 						size = get_image_size_from_bytes(bytesIO)
-# 						model._width = size[0]
-# 						model._height = size[1]
+				image_models.append(model)
 
-# 				image_models.append(model)
-
-# 	return image_models
+	return image_models
 
 
 def get_image_data_in_dir(file_path):
@@ -289,6 +302,22 @@ def get_image_data_in_zip(zip_path, file_path):
 					model._name = name
 
 					with zf.open(model._name) as f:
+						bytesIO = BytesIO()
+						bytesIO.write(f.read())
+						bytesIO.seek(0)
+						return bytesIO
+
+
+def get_image_data_in_rar(rar_path, file_path):
+	""" 압축 파일(rar_path)에서 이미지 파일(file_path)의 데이터를 반환한다. """
+	with rarfile.RarFile(rar_path) as rf:
+		for name in rf.namelist():
+			if name == file_path:
+				if is_EXTENSIONS_ALLOW_IMAGE(name):
+					model = BaseImageModel()
+					model._name = name
+
+					with rf.open(model._name) as f:
 						bytesIO = BytesIO()
 						bytesIO.write(f.read())
 						bytesIO.seek(0)
@@ -441,11 +470,11 @@ def load_image_model2(req_path, archive, archive_ext):
 								  mimetype='application/json')
 		return response
 
-	# elif archive_ext == 'rar':
-	# 	models = get_imagemodel_in_rar(archive_path, mode)
-	# 	data = json.dumps(models, indent=4, cls=LightEncoder)
-	# 	response = flask.Response(data, headers=None, mimetype='application/json')
-	# 	return response
+	elif archive_ext == 'rar':
+		models = get_imagemodel_in_rar(archive_path, mode)
+		data = json.dumps(models, indent=4, cls=LightEncoder)
+		response = flask.Response(data, headers=None, mimetype='application/json')
+		return response
 
 	return ('', 204)
 
@@ -491,11 +520,18 @@ def load_image_data2(req_path, archive, archive_ext, img_path):
 	img_path = unquote(img_path)
 	app.logger.info(img_path)
 
-	if archive_ext == 'zip' or archive_ext == 'cbz':
+	if archive_ext.upper() == 'ZIP' or archive_ext.upper() == 'CBZ':
 		img = get_image_data_in_zip(archive_path, img_path)
 		return flask.send_file(img,
 							   attachment_filename=os.path.basename(img_path),
 							   as_attachment=True)
+
+	if archive_ext.upper() == 'RAR' or archive_ext.upper() == 'CBR':
+		img = get_image_data_in_rar(archive_path, img_path)
+		return flask.send_file(img,
+							   attachment_filename=os.path.basename(img_path),
+							   as_attachment=True)
+
 
 	return ('', 204)
 
