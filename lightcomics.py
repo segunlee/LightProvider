@@ -270,21 +270,24 @@ def get_imagemodel_in_rar(rar_path, mode):
 
     with rarfile.RarFile(rar_path) as rf:
         for name in rf.namelist():
-            # if is_hidden_or_trash(name):
-            #     continue
+            if is_hidden_or_trash(name):
+                continue
             if is_extensions_allow_image(name):
                 model = BaseImageModel()
                 model._name = name
                 app.logger.info("fileName: " + name)
                 if mode == "1":
-                    with rf.open(name) as f:
-                        data = BytesIO()
-                        data.write(f.read())
-                        data.seek(0)
-                        size = get_image_size_from_bytes(data)
-                        model._width = size[0]
-                        model._height = size[1]
-
+                    try:
+                        with rf.open(name) as f:
+                            data = BytesIO()
+                            data.write(f.read())
+                            data.seek(0)
+                            size = get_image_size_from_bytes(data)
+                            model._width = size[0]
+                            model._height = size[1]
+                    Exception:
+                        app.logger.warn("OOPS: " + name)
+                        
                 image_models.append(model)
 
     return image_models
