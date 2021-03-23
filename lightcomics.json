@@ -1,6 +1,6 @@
 {
-  "ROOT": "/DataCenter/",
-  "PORT": 12370,
-  "HOST": "0.0.0.0",
-  "PASSWORD": "1234"
+    "ROOT": "/DataCenter/",
+    "PORT": 12370,
+    "HOST": "0.0.0.0",
+    "PASSWORD": "1234"
 }

@@ -11,13 +11,16 @@ Pillow
 requests
 Tkinter
 chardet
+rarfile
 ```
 
 
 
 ## 지원
 
-현재 zip 파일만 지원합니다.
+ZIP, CBZ 파일만 지원합니다. (Windows, MacOS)
+Linux or SynologNAS는 RAR, CBR 파일도 지원됩니다.
+
 
 
 
@@ -35,10 +38,10 @@ chardet
 
 ```
 {
-  "ROOT": "/home/user/ec2-user/manhwa",
-  "PORT": 8909,
-  "HOST": "0.0.0.0",
-  "PASSWORD": "TEST"
+    "ROOT": "/home/user/ec2-user/manhwa",
+    "PORT": 12370,
+    "HOST": "0.0.0.0",
+    "PASSWORD": "TEST"
 }
 ```
 
