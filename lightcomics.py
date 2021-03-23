@@ -286,7 +286,7 @@ def get_imagemodel_in_rar(rar_path, mode):
                             model._width = size[0]
                             model._height = size[1]
                     except Exception:
-                        app.logger.warn("OOPS: " + name)
+                        app.logger.error("Can not getting width, height >> " + name)
                 image_models.append(model)
 
     return image_models
@@ -306,10 +306,7 @@ def get_image_data_in_zip(zip_path, file_path):
     with zipfile.ZipFile(zip_path) as zf:
         for name in zf.namelist():
             if name == file_path and is_extensions_allow_image(name):
-                model = BaseImageModel()
-                model._name = name
-
-                with zf.open(model._name) as f:
+                with zf.open(name) as f:
                     data = BytesIO()
                     data.write(f.read())
                     data.seek(0)
@@ -318,17 +315,18 @@ def get_image_data_in_zip(zip_path, file_path):
 
 def get_image_data_in_rar(rar_path, file_path):
     """ 압축 파일(rar_path)에서 이미지 파일(file_path)의 데이터를 반환한다. """
-    with rarfile.RarFile(rar_path) as rf:
+    with rarfile.RarFile(rar_path, mode="r", charset=None, info_callback=None, crc_check=False) as rf:
         for name in rf.namelist():
             if name == file_path and is_extensions_allow_image(name):
-                model = BaseImageModel()
-                model._name = name
-
-                with rf.open(model._name) as f:
-                    data = BytesIO()
-                    data.write(f.read())
-                    data.seek(0)
-                    return data
+                try:
+                    with rf.open(name, mode="r") as f:
+                        data = BytesIO()
+                        data.write(f.read())
+                        data.seek(0)
+                        return data
+                except Exception:
+                    app.logger.error("Canot open fileName: " + name)
+                    
 
 
 def get_listing_model(path):
