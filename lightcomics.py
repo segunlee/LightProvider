@@ -285,9 +285,8 @@ def get_imagemodel_in_rar(rar_path, mode):
                             size = get_image_size_from_bytes(data)
                             model._width = size[0]
                             model._height = size[1]
-                    Exception:
+                    except Exception:
                         app.logger.warn("OOPS: " + name)
-                        
                 image_models.append(model)
 
     return image_models
