@@ -275,6 +275,7 @@ def get_imagemodel_in_rar(rar_path, mode):
             if is_extensions_allow_image(name):
                 model = BaseImageModel()
                 model._name = name
+                app.logger.info("fileName: " + name)
                 if mode == "1":
                     with rf.open(name) as f:
                         data = BytesIO()
@@ -466,7 +467,7 @@ def rest_load_image_model2(req_path, archive, archive_ext):
     mode = request.args.get('mode', "0")
     app.logger.info("mode: " + mode)
 
-    if archive_ext == 'zip' or archive_ext == 'cbz':
+    if archive_ext.upper() == 'ZIP' or archive_ext.upper() == 'CBZ':
         models = get_imagemodel_in_zip(archive_path, mode)
         data = json.dumps(models, indent=4, cls=LightEncoder)
         response = flask.Response(data,
@@ -474,7 +475,7 @@ def rest_load_image_model2(req_path, archive, archive_ext):
                                   mimetype=BASE_MIME_TYPE)
         return response
 
-    elif archive_ext == 'rar':
+    elif archive_ext.upper() == 'RAR' or archive_ext.upper() == 'CBR':
         models = get_imagemodel_in_rar(archive_path, mode)
         data = json.dumps(models, indent=4, cls=LightEncoder)
         response = flask.Response(
