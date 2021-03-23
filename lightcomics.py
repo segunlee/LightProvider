@@ -270,8 +270,8 @@ def get_imagemodel_in_rar(rar_path, mode):
 
     with rarfile.RarFile(rar_path) as rf:
         for name in rf.namelist():
-            if is_hidden_or_trash(name):
-                continue
+            # if is_hidden_or_trash(name):
+            #     continue
             if is_extensions_allow_image(name):
                 model = BaseImageModel()
                 model._name = name
