@@ -278,9 +278,9 @@ def get_imagemodel_in_rar(rar_path, mode):
                 app.logger.info("fileName: " + name)
                 if mode == "1":
                     try:
-                        with rf.open(name) as f:
+                        with rf.read(name) as f:
                             data = BytesIO()
-                            data.write(f.read())
+                            data.write(f)
                             data.seek(0)
                             size = get_image_size_from_bytes(data)
                             model._width = size[0]
@@ -315,11 +315,11 @@ def get_image_data_in_zip(zip_path, file_path):
 
 def get_image_data_in_rar(rar_path, file_path):
     """ 압축 파일(rar_path)에서 이미지 파일(file_path)의 데이터를 반환한다. """
-    with rarfile.RarFile(rar_path, mode="r", charset=None, info_callback=None, crc_check=False) as rf:
+    with rarfile.RarFile(rar_path) as rf:
         for name in rf.namelist():
             if name == file_path and is_extensions_allow_image(name):
                 try:
-                    with rf.open(name, mode="r") as f:
+                    with rf.read(name) as f:
                         data = BytesIO()
                         data.write(f.read())
                         data.seek(0)
