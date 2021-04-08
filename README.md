@@ -1,3 +1,8 @@
+# NOT SUPPORT ANYMORE
+해당 프로젝트는 더 이상 지원하지 않습니다. 새로운 LightProvider를 이용하세요
+[이동하기](https://github.com/segunlee/LightProviderNest)
+
+
 # LightProvider - Python-based LightComics Server
 파이선3 베이스로 작성된 LightComics 압축파일 스트리밍 서버입니다.
 
